@@ -12,6 +12,15 @@ A **premium, production-ready SaaS boilerplate** designed to accelerate your dev
 
 ---
 
+## Screenshots
+
+<div align="center">
+  <img src="assets/login.png" alt="Login Page" width="45%" />
+  &nbsp;
+  <img src="assets/dashboard.png" alt="Dashboard" width="45%" />
+</div>
+
+---
 ## Table of Contents
 
 - [Key Features](#-key-features)
