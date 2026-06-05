@@ -39,10 +39,15 @@ jobs:
       with:
         node-version: '18'
         
+    - name: Install pnpm
+      uses: pnpm/action-setup@v3
+      with:
+        version: 9
+        
     - name: Install dependencies
-      run: npm ci
+      run: pnpm install
       working-directory: ./frontend
       
     - name: Build
-      run: npm run build
+      run: pnpm run build
       working-directory: ./frontend
