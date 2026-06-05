@@ -10,8 +10,8 @@ A **premium, production-ready SaaS boilerplate** designed to accelerate your dev
 
 > **Note:** This is a comprehensive template including Authentication, Dashboard, Stripe Subscriptions, and API Key Management.
 
----
 
+---
 ## Table of Contents
 
 - [Key Features](#-key-features)
