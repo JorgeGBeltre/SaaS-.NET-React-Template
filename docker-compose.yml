@@ -16,8 +16,8 @@ services:
 
   backend:
     build:
-      context: ./Backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: src/Api/Dockerfile
     container_name: saas_backend
     ports:
       - "8080:8080"
