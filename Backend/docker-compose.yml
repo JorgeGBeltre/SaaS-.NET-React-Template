@@ -1,17 +1,19 @@
 services:
-  ecf-postgres:
-    image: postgres:15-alpine
-    container_name: ecf-postgres-db
+  saas-postgres:
+    image: postgres:16-alpine
+    container_name: saas-postgres-db
     restart: unless-stopped
     environment:
-      - POSTGRES_DB=${POSTGRES_DB:?POSTGRES_DB es obligatorio}
-      - POSTGRES_USER=${POSTGRES_USER:?POSTGRES_USER es obligatorio}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD es obligatorio}
+      - POSTGRES_DB=${POSTGRES_DB:-saas_db}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-supersecretpassword}
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - ecf_postgres_data:/var/lib/postgresql/data
+      - saas_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     networks:
-      - ecf-network
+      - saas-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
@@ -19,110 +21,39 @@ services:
       retries: 5
       start_period: 5s
 
-  ecf-redis:
-    image: redis:7-alpine
-    container_name: ecf-redis-db
-    restart: unless-stopped
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?REDIS_PASSWORD es obligatorio}"]
-    volumes:
-      - ecf_redis_data:/data
-    networks:
-      - ecf-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?REDIS_PASSWORD es obligatorio}", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 5s
-
-  ecf-api:
+  saas-api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ecf-backend-api
+    image: saas-backend-api:latest
+    container_name: saas-backend-api
     restart: unless-stopped
     depends_on:
-      ecf-postgres:
+      saas-postgres:
         condition: service_healthy
-      ecf-redis:
-        condition: service_healthy
-      ecf-minio-init:
-        condition: service_completed_successfully
     ports:
       - "5000:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:5000
-      - Jwt__SecretKey=${JWT_SECRET:?JWT_SECRET es obligatorio}
-      - Jwt__Issuer=${JWT_ISSUER:-Ecf.API}
-      - Jwt__Audience=${JWT_AUDIENCE:-Ecf.Clients}
-      - ConnectionStrings__DefaultConnection=Host=ecf-postgres-db;Port=5432;Database=${POSTGRES_DB:?POSTGRES_DB es obligatorio};Username=${POSTGRES_USER:?POSTGRES_USER es obligatorio};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD es obligatorio}
-      - ConnectionStrings__WorkerConnection=Host=ecf-postgres-db;Port=5432;Database=${POSTGRES_DB:?POSTGRES_DB es obligatorio};Username=${POSTGRES_WORKER_USER:-ecf_worker};Password=${POSTGRES_WORKER_PASSWORD:?POSTGRES_WORKER_PASSWORD es obligatorio}
-      - ConnectionStrings__Redis=ecf-redis-db:6379,password=${REDIS_PASSWORD:?REDIS_PASSWORD es obligatorio},abortConnect=false
-      - Storage__Provider=MinIO
-      - Storage__Endpoint=http://ecf-minio:9000
-      - Storage__Bucket=ecf-signed-xml
-      - Storage__AccessKey=${MINIO_ROOT_USER:?MINIO_ROOT_USER es obligatorio}
-      - Storage__SecretKey=${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD es obligatorio}
-      - Email__SmtpServer=${SMTP_SERVER:?SMTP_SERVER es obligatorio}
-      - Email__Port=${SMTP_PORT:-587}
-      - Email__SenderEmail=${SMTP_USER:?SMTP_USER es obligatorio}
-      - Email__SenderPassword=${SMTP_PASSWORD:?SMTP_PASSWORD es obligatorio}
-      - Email__SenderName=${SMTP_SENDER_NAME:-Ecf Dominicana}
-      - Email__EnableSsl=${SMTP_ENABLE_SSL:-true}
-      - Email__ClientAppUrl=${CLIENT_APP_URL:?CLIENT_APP_URL es obligatorio}
-      - TZ=America/Santo_Domingo
+      - ConnectionStrings__DefaultConnection=Host=saas-postgres;Port=5432;Database=${POSTGRES_DB:-saas_db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-supersecretpassword}
+      - Jwt__Key=${JWT_KEY:-your-production-jwt-key-that-is-at-least-32-chars-long!!!}
+      - Stripe__SecretKey=${STRIPE_SECRET_KEY:-sk_test_placeholder}
+      - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET:-whsec_placeholder}
     networks:
-      - ecf-network
+      - saas-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/api/v1/auth/me"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
 
-  ecf-minio:
-    image: minio/minio:latest
-    container_name: ecf-minio
-    restart: unless-stopped
-    command: server /data
-    environment:
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER:?MINIO_ROOT_USER es obligatorio}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD es obligatorio}
-    volumes:
-      - ecf_minio_data:/data
-    networks:
-      - ecf-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  ecf-minio-init:
-    image: minio/mc:latest
-    container_name: ecf-minio-init-bucket
-    depends_on:
-      ecf-minio:
-        condition: service_healthy
-    entrypoint: >
-      /bin/sh -c "
-      /usr/bin/mc alias set local http://ecf-minio:9000 ${MINIO_ROOT_USER:?MINIO_ROOT_USER es obligatorio} ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD es obligatorio};
-      /usr/bin/mc mb --with-lock --ignore-existing local/ecf-signed-xml;
-      /usr/bin/mc retention set --default GOVERNANCE 10y local/ecf-signed-xml;
-      exit 0;
-      "
-    networks:
-      - ecf-network
-
 volumes:
-  ecf_postgres_data:
-    driver: local
-  ecf_redis_data:
-    driver: local
-  ecf_minio_data:
+  saas_postgres_data:
     driver: local
 
 networks:
-  ecf-network:
+  saas-network:
+    name: saas-network
     driver: bridge
