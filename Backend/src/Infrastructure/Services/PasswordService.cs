@@ -19,7 +19,7 @@ namespace Infrastructure.Services
         {
             using var hmac = new HMACSHA512(salt);
             byte[] computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return computedHash.SequenceEqual(hash);
+            return CryptographicOperations.FixedTimeEquals(computedHash, hash);
         }
     }
 }

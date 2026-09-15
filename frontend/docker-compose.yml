@@ -1,0 +1,27 @@
+services:
+  ecf-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecf-frontend-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:5000
+      - NEXT_PUBLIC_ECF_AMBIENTE=Test
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    networks:
+      - ecf-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  ecf-network:
+    driver: bridge

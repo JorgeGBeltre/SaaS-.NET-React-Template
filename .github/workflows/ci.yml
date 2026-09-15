@@ -18,13 +18,13 @@ jobs:
         dotnet-version: '9.0.x'
         
     - name: Restore dependencies
-      run: dotnet restore SaaS.slnx
+      run: dotnet restore Backend/SaaS.slnx
       
     - name: Build
-      run: dotnet build SaaS.slnx --no-restore
+      run: dotnet build Backend/SaaS.slnx --no-restore
       
     - name: Test
-      run: dotnet test SaaS.slnx --no-build --verbosity normal
+      run: dotnet test Backend/SaaS.slnx --no-build --verbosity normal
 
   frontend:
     runs-on: ubuntu-latest

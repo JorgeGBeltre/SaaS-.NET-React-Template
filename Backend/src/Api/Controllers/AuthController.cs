@@ -1,9 +1,11 @@
 using System.Threading.Tasks;
 using Application.Features.Auth;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Controllers
 {
+    [EnableRateLimiting("auth-policy")]
     public class AuthController : ApiControllerBase
     {
         [HttpPost("register")]

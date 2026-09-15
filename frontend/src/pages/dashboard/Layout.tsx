@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useEffect } from 'react';
 
 const DashboardLayout = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -12,6 +12,11 @@ const DashboardLayout = () => {
       navigate('/login');
     }
   }, [user, navigate]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const navItems = [
     { name: 'Overview', href: '/dashboard', icon: 'house' },
@@ -61,9 +66,13 @@ const DashboardLayout = () => {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-bold text-gray-900 truncate">{user?.email}</p>
-                <Link to="/" className="text-xs text-gray-400 hover:text-black transition-colors">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="text-xs text-gray-400 hover:text-black transition-colors"
+                >
                   Sign out
-                </Link>
+                </button>
               </div>
             </div>
           </div>
