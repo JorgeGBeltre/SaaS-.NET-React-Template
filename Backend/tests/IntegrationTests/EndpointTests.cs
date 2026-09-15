@@ -74,11 +74,34 @@ namespace IntegrationTests
             var tokenResult = await loginResponse.Content.ReadFromJsonAsync<LoginResponseDto>();
             Assert.NotNull(tokenResult);
             Assert.NotEmpty(tokenResult.Token);
+            Assert.NotEmpty(tokenResult.RefreshToken);
+
+            // Act - Refresh Token
+            var refreshDto = new RefreshTokenRequest(tokenResult.Token, tokenResult.RefreshToken);
+            var refreshResponse = await client.PostAsJsonAsync("/api/auth/refresh", refreshDto);
+
+            // Assert Refresh
+            Assert.Equal(HttpStatusCode.OK, refreshResponse.StatusCode);
+            var refreshedTokens = await refreshResponse.Content.ReadFromJsonAsync<LoginResponseDto>();
+            Assert.NotNull(refreshedTokens);
+            Assert.NotEmpty(refreshedTokens.Token);
+            Assert.NotEmpty(refreshedTokens.RefreshToken);
+
+            // Act - Logout
+            var logoutDto = new LogoutRequest(refreshedTokens.RefreshToken);
+            var logoutResponse = await client.PostAsJsonAsync("/api/auth/logout", logoutDto);
+            Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+
+            // Act - Forgot Password (anti-enumeration check)
+            var forgotDto = new ForgotPasswordCommand("integration@example.com");
+            var forgotResponse = await client.PostAsJsonAsync("/api/auth/forgot-password", forgotDto);
+            Assert.Equal(HttpStatusCode.OK, forgotResponse.StatusCode);
         }
 
         private class LoginResponseDto
         {
             public string Token { get; set; } = string.Empty;
+            public string RefreshToken { get; set; } = string.Empty;
         }
     }
 }

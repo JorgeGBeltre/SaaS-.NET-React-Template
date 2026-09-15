@@ -26,11 +26,17 @@ namespace Infrastructure
             services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
             services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
             services.AddScoped<IStripeCustomerRepository, StripeCustomerRepository>();
+            services.AddScoped<IUserSessionRepository, UserSessionRepository>();
+            services.AddScoped<IOtpCodeRepository, OtpCodeRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.AddScoped<IPasswordHasher, PasswordService>();
             services.AddScoped<IJwtProvider, JwtProvider>();
             services.AddScoped<ICurrentUserProvider, CurrentUserProvider>();
+            services.AddScoped<IOtpService, Infrastructure.Security.OtpService>();
+            services.AddScoped<ITotpService, Infrastructure.Security.TotpService>();
+            services.AddScoped<IGoogleAuthService, Infrastructure.Security.GoogleAuthService>();
+            services.AddScoped<IEmailService, Infrastructure.Services.EmailService>();
 
             services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
 

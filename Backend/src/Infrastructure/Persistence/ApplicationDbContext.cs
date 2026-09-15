@@ -30,6 +30,8 @@ namespace Infrastructure.Persistence
         public DbSet<UserSettings> UserSettings { get; set; } = null!;
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; } = null!;
         public DbSet<StripeCustomer> StripeCustomers { get; set; } = null!;
+        public DbSet<UserSession> UserSessions { get; set; } = null!;
+        public DbSet<OtpCode> OtpCodes { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

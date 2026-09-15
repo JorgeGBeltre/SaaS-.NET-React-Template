@@ -4,12 +4,14 @@ import { jwtDecode } from 'jwt-decode';
 interface User {
   email: string;
   name?: string;
+  sub?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (token: string) => void;
-  logout: () => void;
+  login: (token: string, refreshToken?: string) => void;
+  logout: () => Promise<void>;
+  refreshToken: () => Promise<boolean>;
   isAuthenticated: boolean;
 }
 
@@ -28,29 +30,81 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUser(decoded);
           setIsAuthenticated(true);
         } else {
-          localStorage.removeItem('token');
+          // Token expired, attempt refresh
+          attemptRefreshToken();
         }
       } catch {
         localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
       }
     }
   }, []);
 
-  const login = (token: string) => {
+  const attemptRefreshToken = async (): Promise<boolean> => {
+    const currentRefreshToken = localStorage.getItem('refreshToken');
+    const currentToken = localStorage.getItem('token');
+    if (!currentRefreshToken) {
+      logoutLocal();
+      return false;
+    }
+
+    try {
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken: currentToken, refreshToken: currentRefreshToken }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.token && data.refreshToken) {
+          login(data.token, data.refreshToken);
+          return true;
+        }
+      }
+    } catch {
+      // Refresh failed
+    }
+
+    logoutLocal();
+    return false;
+  };
+
+  const login = (token: string, refreshToken?: string) => {
     localStorage.setItem('token', token);
+    if (refreshToken) {
+      localStorage.setItem('refreshToken', refreshToken);
+    }
     const decoded = jwtDecode<User & { exp: number }>(token);
     setUser(decoded);
     setIsAuthenticated(true);
   };
 
-  const logout = () => {
+  const logoutLocal = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     setUser(null);
     setIsAuthenticated(false);
   };
 
+  const logout = async () => {
+    const rt = localStorage.getItem('refreshToken');
+    if (rt) {
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken: rt }),
+        });
+      } catch {
+        // Continue with local logout
+      }
+    }
+    logoutLocal();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, login, logout, refreshToken: attemptRefreshToken, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
@@ -61,4 +115,3 @@ export const useAuth = () => {
   if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };
-
