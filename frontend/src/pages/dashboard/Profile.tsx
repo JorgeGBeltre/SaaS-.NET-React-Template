@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { FloatingLabel } from '../../components/ui/FloatingLabel';
 
 const DashboardProfile = () => {
   const { user } = useAuth();
@@ -30,7 +31,6 @@ const DashboardProfile = () => {
       });
       if (response.ok) {
         setEditing(false);
-        // You could use a custom toast notification here for better UX
       }
     } catch (err) {
       console.error('Update failed', err);
@@ -66,42 +66,30 @@ const DashboardProfile = () => {
         </div>
 
         <div className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-900 uppercase tracking-wider">First name</label>
-                <input
-                  type="text"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                  className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:bg-white focus:border-transparent transition-all outline-none disabled:opacity-50"
-                  placeholder="John"
-                  disabled={!editing}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-900 uppercase tracking-wider">Last name</label>
-                <input
-                  type="text"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                  className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:bg-white focus:border-transparent transition-all outline-none disabled:opacity-50"
-                  placeholder="Doe"
-                  disabled={!editing}
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FloatingLabel
+                label="First name"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                disabled={!editing}
+              />
+              <FloatingLabel
+                label="Last name"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                disabled={!editing}
+              />
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-bold text-gray-900 uppercase tracking-wider">Email address</label>
-              <input
-                type="email"
-                value={user.email}
-                readOnly
-                className="w-full px-5 py-4 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed outline-none"
-              />
-              <p className="text-xs text-gray-400">Email cannot be changed directly. Contact support for assistance.</p>
-            </div>
+            <FloatingLabel
+              label="Email address"
+              type="email"
+              value={user.email}
+              readOnly
+              disabled
+              helperText="Email cannot be changed directly. Contact support for assistance."
+            />
 
             <div className="flex items-center gap-4 pt-4">
               {!editing ? (

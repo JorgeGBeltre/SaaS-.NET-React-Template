@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { FloatingLabel } from '../../components/ui/FloatingLabel';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -9,7 +9,6 @@ const Signup = () => {
     firstName: '',
     lastName: ''
   });
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -30,26 +29,19 @@ const Signup = () => {
       } else {
         setError(data.message || 'Registration failed');
       }
-    } catch (err) {
+    } catch {
       setError('Network error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <div className="mx-auto h-12 w-12 bg-black flex items-center justify-center">
-            <span className="text-white text-[10px] font-bold">S</span>
+          <div className="mx-auto h-12 w-12 bg-black flex items-center justify-center rounded">
+            <span className="text-white text-xs font-bold">S</span>
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
         </div>
@@ -60,71 +52,44 @@ const Signup = () => {
             </div>
           )}
           <div className="space-y-4">
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                First name
-              </label>
-              <input
+            <div className="grid grid-cols-2 gap-3">
+              <FloatingLabel
                 id="firstName"
                 name="firstName"
-                type="text"
+                label="First name"
                 required
                 value={formData.firstName}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-black rounded-md px-3 py-2"
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
               />
-            </div>
-            <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                Last name
-              </label>
-              <input
+              <FloatingLabel
                 id="lastName"
                 name="lastName"
-                type="text"
+                label="Last name"
                 required
                 value={formData.lastName}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-black rounded-md px-3 py-2"
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
               />
             </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-black rounded-md px-3 py-2"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="relative mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="block w-full border border-black rounded-md px-3 py-2 pl-10 pr-10"
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
+
+            <FloatingLabel
+              id="email"
+              name="email"
+              type="email"
+              label="Email address"
+              required
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+
+            <FloatingLabel
+              id="password"
+              name="password"
+              type="password"
+              label="Password"
+              required
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            />
           </div>
 
           <div>

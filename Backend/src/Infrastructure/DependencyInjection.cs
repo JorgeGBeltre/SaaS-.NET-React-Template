@@ -26,6 +26,8 @@ namespace Infrastructure
             services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
             services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
             services.AddScoped<IStripeCustomerRepository, StripeCustomerRepository>();
+            services.AddScoped<IPaymentCustomerRepository, PaymentCustomerRepository>();
+            services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
             services.AddScoped<IUserSessionRepository, UserSessionRepository>();
             services.AddScoped<IOtpCodeRepository, OtpCodeRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -37,6 +39,17 @@ namespace Infrastructure
             services.AddScoped<ITotpService, Infrastructure.Security.TotpService>();
             services.AddScoped<IGoogleAuthService, Infrastructure.Security.GoogleAuthService>();
             services.AddScoped<IEmailService, Infrastructure.Services.EmailService>();
+
+            // Strategy Pattern for Payment Gateways (Stripe & CardNET)
+            services.Configure<Infrastructure.Payments.Stripe.StripeOptions>(configuration.GetSection(Infrastructure.Payments.Stripe.StripeOptions.SectionName));
+            services.Configure<Infrastructure.Payments.CardNet.CardNetOptions>(configuration.GetSection(Infrastructure.Payments.CardNet.CardNetOptions.SectionName));
+
+            services.AddHttpClient<Infrastructure.Payments.CardNet.CardNetPaymentStrategy>();
+
+            services.AddScoped<Application.Common.Interfaces.IPaymentStrategy, Infrastructure.Payments.Stripe.StripePaymentStrategy>();
+            services.AddScoped<Application.Common.Interfaces.IPaymentStrategy, Infrastructure.Payments.CardNet.CardNetPaymentStrategy>();
+            services.AddScoped<Application.Common.Interfaces.IPaymentStrategyResolver, Infrastructure.Payments.PaymentStrategyResolver>();
+            services.AddScoped<Application.Common.Interfaces.IPaymentContext, Infrastructure.Payments.PaymentContext>();
 
             services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
 

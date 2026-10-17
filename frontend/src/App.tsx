@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
 import { Nav } from './components/Nav';
@@ -9,6 +8,7 @@ import Signup from './pages/auth/Signup';
 import DashboardHome from './pages/dashboard/Home';
 import DashboardLayout from './pages/dashboard/Layout';
 import DashboardProfile from './pages/dashboard/Profile';
+import Plans from './pages/dashboard/Plans';
 
 function App() {
   return (
@@ -27,7 +27,7 @@ function App() {
                 <Route index element={<DashboardHome />} />
                 <Route path="profile" element={<DashboardProfile />} />
                 <Route path="settings" element={<div>Settings</div>} />
-                <Route path="plans" element={<div>Plans</div>} />
+                <Route path="plans" element={<Plans />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
